@@ -277,7 +277,13 @@ restore_shell_history() {
 		while IFS=$d read session_name window_number pane_index pane_command; do
 			if ! is_pane_registered_as_existing "$session_name" "$window_number" "$pane_index"; then
 				local pane_id="$session_name:$window_number.$pane_index"
-				local history_file="$(resurrect_history_file "$pane_id" "$pane_command")"
+
+				if restore_from_tmux_logging_option; then
+					local history_file="$(logging_history_file "$pane_id" "$pane_command")"
+				fi
+				if save_shell_history_option_on; then
+					local history_file="$(resurrect_history_file "$pane_id" "$pane_command")"
+				fi
 
 				if [ "$pane_command" = "bash" ]; then
 					local read_command="history -r '$history_file'"
@@ -350,7 +356,7 @@ main() {
 		restore_all_panes
 		restore_pane_layout_for_each_window >/dev/null 2>&1
 		execute_hook "pre-restore-history"
-		if save_shell_history_option_on; then
+		if save_shell_history_option_on || restore_from_tmux_logging_option; then
 			restore_shell_history
 		fi
 		execute_hook "pre-restore-pane-processes"

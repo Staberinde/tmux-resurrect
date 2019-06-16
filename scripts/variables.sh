@@ -39,6 +39,7 @@ default_pane_contents_area="full"
 
 bash_history_option="@resurrect-save-bash-history" # deprecated
 shell_history_option="@resurrect-save-shell-history"
+restore_from_tmux_logging_option="@resurrect-restore-shell-history-from-tmux-logging
 
 # set to 'on' to ensure panes are never ever overwritten
 overwrite_option="@resurrect-never-overwrite"
