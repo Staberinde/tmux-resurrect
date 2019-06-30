@@ -7,8 +7,16 @@
 ORIGINAL_COMMAND="$1"
 DIRECTORY="$2"
 
-nvim_session_file_exists() {
-	[ -e "${DIRECTORY}/Session.vim" ]
+nvim_git_session_branch_suffix_get() {
+    git branch | grep -Po '\*\ \K.+'
+}
+
+nvim_git_session_file_get() {
+    echo "$HOME/.vim/sessions${DIRECTORY}/$(nvim_git_session_branch_filename_get)"
+}
+
+nvim_git_session_file_exists() {
+    [ -e $(nvim_git_session_file_get) ]
 }
 
 original_command_contains_session_flag() {
@@ -16,8 +24,8 @@ original_command_contains_session_flag() {
 }
 
 main() {
-	if nvim_session_file_exists; then
-		echo "nvim -S"
+	if nvim_git_session_file_exists; then
+        echo "nvim -S $(nvim_git_session_file_get)"
 	elif original_command_contains_session_flag; then
 		# Session file does not exist, yet the original nvim command contains
 		# session flag `-S`. This will cause an error, so we're falling back to
@@ -28,3 +36,4 @@ main() {
 	fi
 }
 main
+
