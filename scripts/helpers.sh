@@ -1,9 +1,12 @@
 default_resurrect_dir="$HOME/.tmux/resurrect"
 resurrect_dir_option="@resurrect-dir"
+default_logging_dir="$HOME"
+logging_dir_option="@logging-path"
 
 SUPPORTED_VERSION="1.9"
 RESURRECT_FILE_PREFIX="tmux_resurrect"
 RESURRECT_FILE_EXTENSION="txt"
+_LOGGING_DIR=""
 _RESURRECT_DIR=""
 _RESURRECT_FILE_PATH=""
 
@@ -64,6 +67,11 @@ files_differ() {
 	! cmp -s "$1" "$2"
 }
 
+restore_from_tmux_logging_option() {
+	local option="$(get_tmux_option "$restore_from_tmux_logging_option" "off")"
+	[ "$option" == "on" ]
+}
+
 save_shell_history_option_on() {
 	local option_shell="$(get_tmux_option "$shell_history_option" "off")"
 	local option_bash="$(get_tmux_option "$bash_history_option" "off")"
@@ -98,6 +106,16 @@ pane_content_files_restore_from_archive() {
 }
 
 # path helpers
+logging_dir() {
+	if [ -z "$_LOGGING_DIR" ]; then
+		local path="$(get_tmux_option "$logging_dir_option" "$default_logging_dir")"
+		# expands tilde, $HOME and $HOSTNAME if used in @logging-dir
+		echo "$path" | sed "s,\$HOME,$HOME,g; s,\$HOSTNAME,$(hostname),g; s,\~,$HOME,g"
+	else
+		echo "$_LOGGING_DIR"
+	fi
+}
+_LOGGING_DIR="$(logging_dir)"
 
 resurrect_dir() {
 	if [ -z "$_RESURRECT_DIR" ]; then
@@ -147,6 +165,12 @@ resurrect_history_file() {
 	local pane_id="$1"
 	local shell_name="$2"
 	echo "$(resurrect_dir)/${shell_name}_history-${pane_id}"
+}
+
+logging_history_file() {
+	local pane_id="$1"
+	local shell_name="$2"
+	echo $(ls -t "$(logging_dir)/tmux-${pane_id}-"* | head -n 1)
 }
 
 execute_hook() {
